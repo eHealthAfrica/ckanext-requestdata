@@ -2,6 +2,7 @@ import logging
 import smtplib
 import cgi
 from socket import error as socket_error
+from time import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
@@ -10,7 +11,7 @@ from smtplib import SMTPRecipientsRefused
 # from pylons import config
 from email.header import Header
 from email import Utils
-
+import ckan
 from ckan.common import config
 from ckan.common import _
 import paste.deploy.converters
@@ -103,8 +104,8 @@ def send_email(content, to, subject, file=None):
                                    "smtp.password must be configured as well.")
             smtp_connection.login(smtp_user, smtp_password)
 
-        smtp_connection.sendmail(mail_from, [recipient_email], msg.as_string())
-        log.info("Sent email to {0}".format(recipient_email))
+        smtp_connection.sendmail(mail_from, to, msg.as_string())
+        log.info("Sent email to {0}".format(to))
 
     except smtplib.SMTPException, e:
         msg = '%r' % e
