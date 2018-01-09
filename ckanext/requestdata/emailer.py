@@ -74,22 +74,22 @@ def send_email(content, to, subject, file=None):
         msg.attach(part)
     # Send the email using Python's smtplib.
     smtp_connection = smtplib.SMTP()
+
+    smtp_server = config.get('smtp.server', 'localhost')
+    smtp_starttls = paste.deploy.converters.asbool(
+        config.get('smtp.starttls'))
+    smtp_user = config.get('smtp.user')
+    smtp_password = config.get('smtp.password')
     try:
-        smtp_server = config.get('smtp.server', 'localhost')
-        smtp_starttls = paste.deploy.converters.asbool(
-            config.get('smtp.starttls'))
-        smtp_user = config.get('smtp.user')
-        smtp_password = config.get('smtp.password')
-        try:
-            smtp_connection.connect(smtp_server)
-        except socket.error, e:
-            log.exception(e)
-            raise MailerException('SMTP server could not be connected to: "%s" %s'
+        smtp_connection.connect(smtp_server)
+    except socket.error, e:
+        log.exception(e)
+        raise MailerException('SMTP server could not be connected to: "%s" %s'
                               % (smtp_server, e))
 
-        try:
+    try:
         # Identify ourselves and prompt the server for supported features.
-            smtp_connection.ehlo()
+        smtp_connection.ehlo()
 
         # If 'smtp.starttls' is on in CKAN config, try to put the SMTP
         # connection into TLS mode.
