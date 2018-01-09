@@ -35,9 +35,8 @@ def send_email(content, to, subject, file=None):
        '''
     mail_from = config.get('smtp.mail_from')
     msg = MIMEText(content.encode('utf-8'), 'plain', 'utf-8')
-    subject = Header(subject.encode('utf-8'), 'utf-8')
     msg['Subject'] = subject
-    msg['From'] = _("%s <%s>") % ('Data Requests', mail_from)
+    msg['From'] = "%s <%s>" % ('Data Requests', mail_from)
     if isinstance(to, basestring):
         to = [to]
     msg['To'] = ','.join(to)
@@ -136,4 +135,4 @@ def send_email(content, to, subject, file=None):
         return error_dict
     finally:
         smtp_connection.quit()
-        
+
