@@ -89,7 +89,7 @@ def send_email(content, to, subject, file=None):
 
         try:
         # Identify ourselves and prompt the server for supported features.
-        smtp_connection.ehlo()
+            smtp_connection.ehlo()
 
         # If 'smtp.starttls' is on in CKAN config, try to put the SMTP
         # connection into TLS mode.
