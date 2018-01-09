@@ -32,12 +32,7 @@ def send_email(content, to, subject, file=None):
 
        '''
     mail_from = config.get('smtp.mail_from')
-    msg = MIMEText(body.encode('utf-8'), 'plain', 'utf-8')
-    for k, v in headers.items():
-        if k in msg.keys():
-            msg.replace_header(k, v)
-        else:
-            msg.add_header(k, v)
+    msg = MIMEText(content.encode('utf-8'), 'plain', 'utf-8')
     subject = Header(subject.encode('utf-8'), 'utf-8')
     msg['Subject'] = subject
     msg['From'] = _("%s <%s>") % ('Data Requests', mail_from)
