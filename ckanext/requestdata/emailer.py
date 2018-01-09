@@ -12,6 +12,7 @@ from email.header import Header
 from email import Utils
 
 from ckan.common import config
+from ckan.common import _
 import paste.deploy.converters
 
 
