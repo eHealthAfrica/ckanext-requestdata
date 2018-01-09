@@ -106,10 +106,34 @@ def send_email(content, to, subject, file=None):
 
         smtp_connection.sendmail(mail_from, to, msg.as_string())
         log.info("Sent email to {0}".format(to))
-
+        response_dict = {
+            'success': True,
+            'message': 'Email message was successfully sent.'
+        }
+        return response_dict
+    except SMTPRecipientsRefused:
+        error = {
+            'success': False,
+            'error': {
+                'fields': {
+                    'recepient': 'Invalid email recepient, maintainer not '
+                    'found'
+                }
+            }
+        }
+        return error
     except smtplib.SMTPException, e:
         msg = '%r' % e
         log.exception(msg)
         raise MailerException(msg)
+    except socket_error:
+        log.critical('Could not connect to email server. Have you configured '
+                     'the SMTP settings?')
+        error_dict = {
+            'success': False,
+            'message': 'An error occured while sending the email. Try again.'
+        }
+        return error_dict
     finally:
         smtp_connection.quit()
+        
