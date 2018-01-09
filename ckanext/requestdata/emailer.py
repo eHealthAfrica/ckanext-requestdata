@@ -7,15 +7,15 @@ from email.mime.multipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
 from email import Encoders
 from smtplib import SMTPRecipientsRefused
-from pylons import config
+# from pylons import config
+from email.header import Header
+from email import Utils
+
+from ckan.common import config
+import paste.deploy.converters
 
 
 log = logging.getLogger(__name__)
-
-SMTP_SERVER = config.get('smtp.server', '')
-SMTP_USER = config.get('smtp.user', '')
-SMTP_PASSWORD = config.get('smtp.password', '')
-SMTP_FROM = config.get('smtp.mail_from')
 
 
 def send_email(content, to, subject, file=None):
@@ -31,17 +31,23 @@ def send_email(content, to, subject, file=None):
        :rtype: string
 
        '''
-
-    msg = MIMEMultipart()
-
-    from_ = SMTP_FROM
-
+    mail_from = config.get('smtp.mail_from')
+    msg = MIMEText(body.encode('utf-8'), 'plain', 'utf-8')
+    for k, v in headers.items():
+        if k in msg.keys():
+            msg.replace_header(k, v)
+        else:
+            msg.add_header(k, v)
+    subject = Header(subject.encode('utf-8'), 'utf-8')
+    msg['Subject'] = subject
+    msg['From'] = _("%s <%s>") % ('Data Requests', mail_from)
     if isinstance(to, basestring):
         to = [to]
-
-    msg['Subject'] = subject
-    msg['From'] = from_
     msg['To'] = ','.join(to)
+    msg['Date'] = Utils.formatdate(time())
+    msg['X-Mailer'] = "CKAN %s" % ckan.__version__
+    msg = MIMEMultipart()
+
 
     content = """\
         <html>
@@ -66,34 +72,47 @@ def send_email(content, to, subject, file=None):
         part.add_header('Content-Disposition', header_value)
 
         msg.attach(part)
-
+    # Send the email using Python's smtplib.
+    smtp_connection = smtplib.SMTP()
     try:
-        s = smtplib.SMTP(SMTP_SERVER)
-        if SMTP_USER:
-            s.login(SMTP_USER, SMTP_PASSWORD)
-        s.sendmail(from_, to, msg.as_string())
-        s.quit()
-        response_dict = {
-            'success': True,
-            'message': 'Email message was successfully sent.'
-        }
-        return response_dict
-    except SMTPRecipientsRefused:
-        error = {
-            'success': False,
-            'error': {
-                'fields': {
-                    'recepient': 'Invalid email recepient, maintainer not '
-                    'found'
-                }
-            }
-        }
-        return error
-    except socket_error:
-        log.critical('Could not connect to email server. Have you configured '
-                     'the SMTP settings?')
-        error_dict = {
-            'success': False,
-            'message': 'An error occured while sending the email. Try again.'
-        }
-        return error_dict
+        smtp_server = config.get('smtp.server', 'localhost')
+        smtp_starttls = paste.deploy.converters.asbool(
+            config.get('smtp.starttls'))
+        smtp_user = config.get('smtp.user')
+        smtp_password = config.get('smtp.password')
+        try:
+            smtp_connection.connect(smtp_server)
+        except socket.error, e:
+            log.exception(e)
+            raise MailerException('SMTP server could not be connected to: "%s" %s'
+                              % (smtp_server, e))
+
+        try:
+        # Identify ourselves and prompt the server for supported features.
+        smtp_connection.ehlo()
+
+        # If 'smtp.starttls' is on in CKAN config, try to put the SMTP
+        # connection into TLS mode.
+        if smtp_starttls:
+            if smtp_connection.has_extn('STARTTLS'):
+                smtp_connection.starttls()
+                # Re-identify ourselves over TLS connection.
+                smtp_connection.ehlo()
+            else:
+                raise MailerException("SMTP server does not support STARTTLS")
+
+        # If 'smtp.user' is in CKAN config, try to login to SMTP server.
+        if smtp_user:
+            assert smtp_password, ("If smtp.user is configured then "
+                                   "smtp.password must be configured as well.")
+            smtp_connection.login(smtp_user, smtp_password)
+
+        smtp_connection.sendmail(mail_from, [recipient_email], msg.as_string())
+        log.info("Sent email to {0}".format(recipient_email))
+
+    except smtplib.SMTPException, e:
+        msg = '%r' % e
+        log.exception(msg)
+        raise MailerException(msg)
+    finally:
+        smtp_connection.quit()
