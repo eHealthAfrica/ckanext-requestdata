@@ -104,7 +104,6 @@ def send_email(content, to, subject, file=None):
             assert smtp_password, ("If smtp.user is configured then "
                                    "smtp.password must be configured as well.")
             smtp_connection.login(smtp_user, smtp_password)
-        print(msg.as_string())
         smtp_connection.sendmail(mail_from, to, msg.as_string())
         log.info("Sent email to {0}".format(to))
         response_dict = {
