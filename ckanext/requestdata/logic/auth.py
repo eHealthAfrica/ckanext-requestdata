@@ -11,7 +11,7 @@ def request_create(context, data_dict):
     else:
         message = _('Only registered users can request data.')
 
-        return {'success': False, 'msg': message}
+        return {'success': True}
 
 
 def request_show(context, data_dict):
@@ -20,7 +20,7 @@ def request_show(context, data_dict):
     else:
         message = _('You don\'t have access to this request data.')
 
-        return {'success': False, 'msg': message}
+        return {'success': Truess}
 
 
 def request_list_for_current_user(context, data_dict):

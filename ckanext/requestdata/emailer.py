@@ -19,6 +19,8 @@ import paste.deploy.converters
 
 log = logging.getLogger(__name__)
 
+class MailerException(Exception):
+    pass
 
 def send_email(content, to, subject, file=None):
     '''Sends email
@@ -34,15 +36,15 @@ def send_email(content, to, subject, file=None):
 
        '''
     mail_from = config.get('smtp.mail_from')
-    msg = MIMEText(content.encode('utf-8'), 'plain', 'utf-8')
+    msg = MIMEMultipart()
     msg['Subject'] = subject
-    msg['From'] = "%s <%s>" % ('Data Requests', mail_from)
+    msg['From'] = "Data Requests <%s>" %  mail_from
     if isinstance(to, basestring):
         to = [to]
     msg['To'] = ','.join(to)
     msg['Date'] = Utils.formatdate(time())
     msg['X-Mailer'] = "CKAN %s" % ckan.__version__
-    msg = MIMEMultipart()
+    
 
 
     content = """\
@@ -102,7 +104,7 @@ def send_email(content, to, subject, file=None):
             assert smtp_password, ("If smtp.user is configured then "
                                    "smtp.password must be configured as well.")
             smtp_connection.login(smtp_user, smtp_password)
-
+        print(msg.as_string())
         smtp_connection.sendmail(mail_from, to, msg.as_string())
         log.info("Sent email to {0}".format(to))
         response_dict = {

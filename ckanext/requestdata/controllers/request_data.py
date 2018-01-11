@@ -36,12 +36,12 @@ def _get_action(action, data_dict):
 
 
 def _get_email_configuration(
-        user_name, data_owner, dataset_name, email, message, organization,
+        user_name, data_owner, dataset_name, email, message,
         data_maintainers, only_org_admins=False):
     schema = logic.schema.update_configuration_schema()
     avaiable_terms = ['{name}', '{data_maintainers}', '{dataset}',
-                      '{organization}', '{message}', '{email}']
-    new_terms = [user_name, data_maintainers, dataset_name, organization,
+                    '{message}', '{email}']
+    new_terms = [user_name, data_maintainers, dataset_name,
                  message, email]
 
     try:
@@ -60,7 +60,6 @@ def _get_email_configuration(
             email_footer = config.get(key)
     if '{message}' not in email_body and not email_body and not email_footer:
         email_body += message
-        return email_body
     for i in range(0, len(avaiable_terms)):
         if avaiable_terms[i] == '{dataset}' and new_terms[i]:
             url = toolkit.url_for(
@@ -68,8 +67,6 @@ def _get_email_configuration(
                                     action='read',
                                     id=new_terms[i], qualified=True)
             new_terms[i] = '<a href="' + url + '">' + new_terms[i] + '</a>'
-        elif avaiable_terms[i] == '{organization}' and is_user_sysadmin:
-            new_terms[i] = config.get('ckan.site_title')
         elif avaiable_terms[i] == '{data_maintainers}':
             if len(new_terms[i]) == 1:
                 new_terms[i] = new_terms[i][0]
@@ -106,21 +103,6 @@ def _get_email_configuration(
          as soon as you can by visiting the \
          <a href="' + url + '">My Requests</a> page.</strong>'
 
-    organizations =\
-        _get_action('organization_list_for_user', {'id': data_owner})
-
-    package = _get_action('package_show', {'id': dataset_name})
-
-    if not only_org_admins:
-        for org in organizations:
-            if org['name'] in organization\
-                    and package['owner_org'] == org['id']:
-                url = \
-                    toolkit.url_for('requestdata_organization_requests',
-                                    id=org['name'], qualified=True)
-                email_body += '<br><br> Go to <a href="' + url + '">\
-                              Requested data</a> page in organization admin.'
-
     site_url = config.get('ckan.site_url')
     site_title = config.get('ckan.site_title')
     newsletter_url = config.get('ckanext.requestdata.newsletter_url', site_url)
@@ -143,7 +125,6 @@ def _get_email_configuration(
         </small>
 
     """
-
     result = email_header + '<br><br>' + email_body + '<br><br>' + email_footer
 
     return result
@@ -159,8 +140,8 @@ class RequestDataController(BaseController):
 
         :rtype: json
         '''
-        context = {'model': model, 'session': model.Session,
-                   'user': c.user, 'auth_user_obj': c.userobj}
+        # context = {'model': model, 'session': model.Session,
+        #            'user': c.user, 'auth_user_obj': c.userobj}
         try:
             if p.toolkit.request.method == 'POST':
                 data = dict(toolkit.request.POST)
@@ -176,25 +157,13 @@ class RequestDataController(BaseController):
             }
 
             return json.dumps(error)
-
         data_dict = {'id': data['package_id']}
         package = _get_action('package_show', data_dict)
-        sender_name = data.get('sender_name', '')
-        user_obj = context['auth_user_obj']
-        data_dict = {
-            'id': user_obj.id,
-            'permission': 'read'
-        }
+        sender_name = data.get('sender_name', 'Data Requests')
 
-        organizations = _get_action('organization_list_for_user', data_dict)
-
-        orgs = []
-        for i in organizations:
-                orgs.append(i['display_name'])
-        org = ','.join(orgs)
         dataset_name = package['name']
         dataset_title = package['title']
-        email = user_obj.email
+        email = data['email_address']
         message = data['message_content']
         creator_user_id = package['creator_user_id']
         data_owner =\
@@ -238,7 +207,7 @@ class RequestDataController(BaseController):
                 except NotFound:
                     pass
             mail_subject =\
-                config.get('ckan.site_title') + ': New data request "'\
+                config.get('ckan.site_title') + ': New data request for "'\
                                                 + dataset_title + '"'
 
             if len(users_email) == 0:
@@ -251,9 +220,8 @@ class RequestDataController(BaseController):
 
             content = _get_email_configuration(
                 sender_name, data_owner, dataset_name, email,
-                message, org, data_maintainers,
+                message, data_maintainers,
                 only_org_admins=only_org_admins)
-
             response_message = \
                 emailer.send_email(content, users_email, mail_subject)
 

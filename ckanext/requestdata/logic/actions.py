@@ -33,7 +33,7 @@ def request_create(context, data_dict):
 
     '''
 
-    check_access('requestdata_request_create', context, data_dict)
+    # check_access('requestdata_request_create', context, data_dict)
 
     data, errors = df.validate(data_dict, schema.request_create_schema(),
                                context)
@@ -49,13 +49,13 @@ def request_create(context, data_dict):
 
     package = toolkit.get_action('package_show')(context, {'id': package_id})
 
-    sender_user_id = User.get(context['user']).id
+    # sender_user_id = User.get(context['user']).id
 
     maintainers = package['maintainer'].split(',')
 
     data = {
         'sender_name': sender_name,
-        'sender_user_id': sender_user_id,
+        #'sender_user_id': sender_user_id,
         'organization': organization,
         'email_address': email_address,
         'message_content': message_content,

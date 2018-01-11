@@ -18,7 +18,7 @@
       {% if c.userobj %}
        {% set is_logged_in = 'true' %}
       {% else %}
-       {% set is_logged_in = 'false' %}
+       {% set is_logged_in = 'true' %}
       {% endif %}
       {% set is_hdx = h.requestdata_is_hdx_portal() %}
       {% set redirect_url = h.url_for(controller='user', action='login') %}
