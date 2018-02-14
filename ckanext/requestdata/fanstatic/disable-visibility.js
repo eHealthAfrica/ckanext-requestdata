@@ -6,7 +6,7 @@
 
   // For some reason, other script is reenabling the select, so we need to add
   // a timeout
-  setTimeout(function() {
-    visibilitySelect.setAttribute('disabled', 'disabled')
-  }, 500)
+  // setTimeout(function() {
+  //   visibilitySelect.setAttribute('disabled', 'disabled')
+  // }, 500)
 })()
