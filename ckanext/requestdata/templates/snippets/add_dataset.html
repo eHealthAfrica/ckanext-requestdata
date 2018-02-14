@@ -1,7 +1,7 @@
 {% resource 'requestdata/add-dataset.js' %}
 
 <a class="btn btn-primary" data-module="add-dataset-modal">
-  <i class="icon-plus-sign-alt"></i> {{ _('Add Dataset') }}
+  <i class="fa fa-plus-square"></i> {{ _('Add Dataset') }}
 </a>
 
 <div class="modal-backdrop add-dataset-modal-backdrop"></div>
@@ -11,7 +11,7 @@
   <div class="add-dataset-modal-box">
     <div class="modal-body">
       <h3>Add full dataset</h3>
-      {% link_for _('Add Dataset'), controller='package', action='new', class_='btn btn-primary', icon='plus-sign-alt' %}
+      {% link_for _('Add Dataset'), controller='package', action='new', class_='btn btn-primary', icon='fa fa-plus-square' %}
       <div class="add-dataset-modal-description">
         <p>This option is suitable if:</p>
         <ul>
@@ -32,7 +32,7 @@
       {% set url = h.add_url_param(controller='package', action='new', new_params=params) %}
 
       <a class="btn btn-primary" href="{{ url }}">
-        <i class="icon-plus-sign-alt"></i> {{ _('Add metadata') }}
+        <i class="fa fa-plus-square"></i> {{ _('Add metadata') }}
       </a>
       <div class="add-dataset-modal-description">
         <p>This option is suitable if:</p>
