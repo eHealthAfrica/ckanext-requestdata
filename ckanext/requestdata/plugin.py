@@ -21,9 +21,12 @@ class RequestdataPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     # IConfigurer
 
     def update_config(self, config_):
+        # Setup requestdata model
+        model_setup()
         toolkit.add_template_directory(config_, 'templates')
         toolkit.add_public_directory(config_, 'public')
         toolkit.add_resource('fanstatic', 'requestdata')
+        
 
     def update_config_schema(self, schema):
         ignore_missing = toolkit.get_validator('ignore_missing')
@@ -108,9 +111,7 @@ class RequestdataPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     # IConfigurable
 
     def configure(self, config):
-
-        # Setup requestdata model
-        model_setup()
+        return config
 
     # IActions
 
