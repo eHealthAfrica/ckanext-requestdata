@@ -16,7 +16,7 @@ try:
     # Support CKAN 2.6
     redirect = base.redirect
 except AttributeError:
-    # Redirect is now redirect_to in CKAN 2.7
+    # Redirect is not redirect_to in CKAN 2.7
     redirect = h.redirect_to
 abort = base.abort
 tuplize_dict = logic.tuplize_dict
